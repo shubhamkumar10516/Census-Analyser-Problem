@@ -21,11 +21,16 @@ public class CensusAnalyser {
 	public int loadIndiaCensusData(String csvFilePath) throws CensusAnalyserException {
 		checkCorrectFileType(csvFilePath);
 		try (Reader reader = Files.newBufferedReader(Paths.get(csvFilePath));) {
+			if(!checkHeader(reader)) {
+				throw new CensusAnalyserException("Header is mismatching", ExceptionType.INCORRECT_HEADER_TYPE);
+			}
 			CSVBuilder csvBuilder = CSVBuilderFactory.createCSVBuilder();
-			Iterator<IndiaCensusCSV> censusCSVIterator = new OpenCSVBuilder().getCSVFileIterator(reader,IndiaCensusCSV.class);
+			Iterator<IndiaCensusCSV> censusCSVIterator = new OpenCSVBuilder().getCSVFileIterator(reader,
+					IndiaCensusCSV.class);
 			return getCount(censusCSVIterator);
 		} catch (IOException e) {
-			throw new CensusAnalyserException(e.getMessage(), CensusAnalyserException.ExceptionType.CENSUS_FILE_PROBLEM);
+			throw new CensusAnalyserException(e.getMessage(),
+					CensusAnalyserException.ExceptionType.CENSUS_FILE_PROBLEM);
 		} catch (RuntimeException e) {
 			throw new CensusAnalyserException(e.getMessage(), CensusAnalyserException.ExceptionType.DELIMITER_ISSUE);
 		}
@@ -37,12 +42,15 @@ public class CensusAnalyser {
 		checkCorrectFileType(csvFilePath);
 		try (Reader reader = Files.newBufferedReader(Paths.get(csvFilePath));) {
 			@SuppressWarnings("unchecked")
-			Iterator<IndiaStateCodeCSV> censusCSVIterator = new OpenCSVBuilder().getCSVFileIterator(reader,IndiaStateCodeCSV.class);
+			Iterator<IndiaStateCodeCSV> censusCSVIterator = new OpenCSVBuilder().getCSVFileIterator(reader,
+					IndiaStateCodeCSV.class);
 			return getCount(censusCSVIterator);
 		} catch (IOException e) {
-			throw new CensusAnalyserException(e.getMessage(), CensusAnalyserException.ExceptionType.CENSUS_FILE_PROBLEM);
+			throw new CensusAnalyserException(e.getMessage(),
+					CensusAnalyserException.ExceptionType.CENSUS_FILE_PROBLEM);
 		} catch (RuntimeException e) {
-			throw new CensusAnalyserException("there can be delimiter issue in file",CensusAnalyserException.ExceptionType.DELIMITER_ISSUE);
+			throw new CensusAnalyserException("there can be delimiter issue in file",
+					CensusAnalyserException.ExceptionType.DELIMITER_ISSUE);
 		}
 	}
 
@@ -65,8 +73,10 @@ public class CensusAnalyser {
 		CSVReader csvReader = new CSVReader(reader);
 		String[] nextRecord;
 		nextRecord = csvReader.readNext();
-		boolean result = nextRecord[0].equals("State") && nextRecord[1].equals("Population")
-				&& nextRecord[2].equals("AreaInSqKm") && nextRecord[3].equals("DensityPerSqKm");
+		boolean result = (nextRecord[0].equals("State") && nextRecord[1].equals("Population")
+				&& nextRecord[2].equals("AreaInSqKm") && nextRecord[3].equals("DensityPerSqKm"))
+				|| (nextRecord[0].equals("SrNo") && nextRecord[1].equals("State Name") && nextRecord[2].equals("TIN")
+						&& nextRecord[3].equals("StateCode"));
 		return result;
 	}
 }
