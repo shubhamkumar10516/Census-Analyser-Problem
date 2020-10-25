@@ -13,21 +13,24 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.util.Iterator;
+import java.util.List;
 import java.util.stream.StreamSupport;
 
 public class CensusAnalyser {
+
+	List<IndiaCensusCSV> censusCSVList = null;
+	List<IndiaStateCodeCSV> stateCodeList = null;
 
 	@SuppressWarnings("unchecked")
 	public int loadIndiaCensusData(String csvFilePath) throws CensusAnalyserException {
 		checkCorrectFileType(csvFilePath);
 		try (Reader reader = Files.newBufferedReader(Paths.get(csvFilePath));) {
-			if(!checkHeader(reader)) {
+			if (!checkHeader(reader)) {
 				throw new CensusAnalyserException("Header is mismatching", ExceptionType.INCORRECT_HEADER_TYPE);
 			}
 			CSVBuilder csvBuilder = CSVBuilderFactory.createCSVBuilder();
-			Iterator<IndiaCensusCSV> censusCSVIterator = new OpenCSVBuilder().getCSVFileIterator(reader,
-					IndiaCensusCSV.class);
-			return getCount(censusCSVIterator);
+			censusCSVList = csvBuilder.getCSVFileList(reader, IndiaCensusCSV.class);
+			return censusCSVList.size();
 		} catch (IOException e) {
 			throw new CensusAnalyserException(e.getMessage(),
 					CensusAnalyserException.ExceptionType.CENSUS_FILE_PROBLEM);
@@ -41,10 +44,13 @@ public class CensusAnalyser {
 	public int loadIndiaStateCode(String csvFilePath) throws CensusAnalyserException, IlleagalStateException {
 		checkCorrectFileType(csvFilePath);
 		try (Reader reader = Files.newBufferedReader(Paths.get(csvFilePath));) {
+			if (!checkHeader(reader)) {
+				throw new CensusAnalyserException("Header is mismatching", ExceptionType.INCORRECT_HEADER_TYPE);
+			}
 			@SuppressWarnings("unchecked")
-			Iterator<IndiaStateCodeCSV> censusCSVIterator = new OpenCSVBuilder().getCSVFileIterator(reader,
-					IndiaStateCodeCSV.class);
-			return getCount(censusCSVIterator);
+			CSVBuilder csvBuilder = CSVBuilderFactory.createCSVBuilder();
+			stateCodeList = csvBuilder.getCSVFileList(reader, IndiaStateCodeCSV.class);
+			return stateCodeList.size();
 		} catch (IOException e) {
 			throw new CensusAnalyserException(e.getMessage(),
 					CensusAnalyserException.ExceptionType.CENSUS_FILE_PROBLEM);
@@ -52,13 +58,6 @@ public class CensusAnalyser {
 			throw new CensusAnalyserException("there can be delimiter issue in file",
 					CensusAnalyserException.ExceptionType.DELIMITER_ISSUE);
 		}
-	}
-
-	// get count of entries
-	private <E> int getCount(Iterator<E> iterator) {
-		Iterable<E> csvIterable = () -> iterator;
-		int numOfEateries = (int) StreamSupport.stream(csvIterable.spliterator(), false).count();
-		return numOfEateries;
 	}
 
 	// Check for correct file type
