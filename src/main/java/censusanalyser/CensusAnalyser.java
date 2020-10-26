@@ -8,11 +8,14 @@ import com.opencsv.bean.CsvToBeanBuilder;
 
 import censusanalyser.CensusAnalyserException.ExceptionType;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -20,6 +23,7 @@ import java.util.stream.StreamSupport;
 
 public class CensusAnalyser {
 
+	private static final String JSON_SORT_BY_POPULATION = null;
 	List<IndiaCensusCSV> censusCSVList = null;
 	List<IndiaStateCodeCSV> stateCodeList = null;
 
@@ -99,6 +103,25 @@ public class CensusAnalyser {
 		this.sort(stateCodeComparator, stateCodeList);
 		String sortedStateCensusJson = new Gson().toJson(stateCodeList);
 		return sortedStateCensusJson;
+	}
+	
+	// sorting population wise
+	public String getPopulationWiseSortedData() throws CensusAnalyserException {
+		try(BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(JSON_SORT_BY_POPULATION))) {
+			if (censusCSVList == null || censusCSVList.size() == 0) {
+				throw new CensusAnalyserException("No List Available",
+						CensusAnalyserException.ExceptionType.NO_CENSUS_DATA);
+			}
+			Comparator<IndiaCensusCSV> censusComparator = Comparator.comparing(census -> census.population);
+			this.sort(censusComparator, censusCSVList);
+			Collections.reverse(censusCSVList);
+			String sortedStateCensusJson = new Gson().toJson(censusCSVList);
+			bufferedWriter.write(sortedStateCensusJson);
+			return sortedStateCensusJson;
+		}	catch (IOException e) {
+			throw new CensusAnalyserException("No List Available",
+					CensusAnalyserException.ExceptionType.CENSUS_FILE_PROBLEM);
+		}
 	}
 
 	// sorting the data of list
