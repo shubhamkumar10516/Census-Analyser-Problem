@@ -146,4 +146,16 @@ public class CensusAnalyserTest {
 			System.out.println(e.getMessage());
 		}
 	}
+	
+	@Test
+	public void givenIndianCensusDataSortedByPopulation() {
+		try {
+			censusAnalyser.loadIndiaCensusData(INDIA_CENSUS_CSV_FILE_PATH);
+			String populationWiseSortedCensusData = censusAnalyser.getPopulationWiseSortedData();
+			IndiaCensusCSV[] censusCSV = new Gson().fromJson(populationWiseSortedCensusData, IndiaCensusCSV[].class);
+			assertEquals("Uttar Pradesh", censusCSV[0].state);				
+		}catch (CensusAnalyserException e) {
+			System.out.println(e.getMessage());
+		}
+	}
 }
