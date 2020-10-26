@@ -134,4 +134,16 @@ public class CensusAnalyserTest {
 			System.out.println(e.getMessage());
 		}
 	}
+	
+	@Test
+	public void givenIndianStateCodeSortByCode() throws IlleagalStateException {
+		try {
+			censusAnalyser.loadIndiaStateCode(INDIA_STATE_CODE_CSV_FILE_PATH);
+			String stateCodeWiseSortedStateData = censusAnalyser.getStateCodeWiseSortedCensusData();
+			IndiaStateCodeCSV[] censusCSV = new Gson().fromJson(stateCodeWiseSortedStateData, IndiaStateCodeCSV[].class);
+			assertEquals("Andhra Pradesh New", censusCSV[0].state);				
+		}catch (CensusAnalyserException e) {
+			System.out.println(e.getMessage());
+		}
+	}
 }
